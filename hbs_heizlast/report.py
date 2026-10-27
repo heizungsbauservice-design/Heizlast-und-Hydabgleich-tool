@@ -168,7 +168,7 @@ def build_pdf(path, project, settings, erg, meta):
     ]
     dp_rows = []
     if w:
-        dp_rows.append((f"Ungünstigster Heizkreis: {etage_kurz(wr.etage)}, {wr.nr}, {wr.name} "
+        dp_rows.append((f"Ungünstigster Heizkreis: {', '.join(x for x in (etage_kurz(wr.etage), wr.nr, wr.name) if x)} "
                         f"(ca. {de(w.laenge)} m, {de(w.volumenstrom, 2)} l/min)", erg.dp_kreis))
     dp_rows += [("Verteiler, Ventileinsatz, Durchflussanzeiger", erg.dp_verteiler),
                 ("Zusätzliche Armaturen (Wärmemengenzähler, Strangregulierventil, Absperrungen)", erg.dp_zusatz),
@@ -248,12 +248,14 @@ def build_pdf(path, project, settings, erg, meta):
     bsp = erg.zeilen and max(erg.zeilen, key=lambda z: z[0].heizlast)
     notes = [
         ("Datengrundlage.", "Alle Heizlasten stammen unverändert aus der raumweisen Heizlastberechnung nach "
-         "DIN EN 12831-1 des Planers. Angesetzt ist jeweils die Norm-Heizlast des Raumes einschließlich "
-         "Aufheizzuschlag. HBS hat die Werte übernommen und daraus Volumenströme und Pumpeneinstellung abgeleitet, "
-         "die Heizlastberechnung selbst wurde nicht neu erstellt."),
+         f"{project.norm.split(' mit ')[0]}"
+         + (" des Planers. Angesetzt ist jeweils die Norm-Heizlast des Raumes einschließlich Aufheizzuschlag."
+            if project.software != "heiz.report" else ". Angesetzt ist jeweils die Raumheizlast laut Berechnung.")
+         + " Daraus wurden Volumenströme und Pumpeneinstellung abgeleitet, die Heizlasten selbst wurden nicht "
+         "verändert."),
         ("Berechnung des Volumenstroms.", "Der Volumenstrom ergibt sich aus der Wärmemenge, die das Heizwasser bei "
          f"der gewählten Spreizung abgeben kann: <b>Volumenstrom [l/min] = Heizlast [W] ÷ (1,163 Wh/(kg·K) × {dts} K) ÷ 60</b>."
-         + (f" Beispiel {bsp[0].name}, {bsp[0].nr}: {de(bsp[0].heizlast)} W ÷ {de(1.163 * settings.spreizung, 3)} ÷ 60 = "
+         + (f" Beispiel {bsp[0].name}{', ' + bsp[0].nr if bsp[0].nr else ''}: {de(bsp[0].heizlast)} W ÷ {de(1.163 * settings.spreizung, 3)} ÷ 60 = "
             f"{de(bsp[1], 2)} l/min." if bsp else "")),
         (f"Warum {dts} K Spreizung.", "5 K ist der übliche Standardwert für Fußbodenheizungen nach DIN EN 1264. "
          "Die geringe Spreizung sorgt für eine gleichmäßige Oberflächentemperatur und ermöglicht niedrige "
@@ -268,15 +270,17 @@ def build_pdf(path, project, settings, erg, meta):
          "Wärmeüberschuss aus den Nachbarräumen."),
         ("Gesamtvolumenstrom.", f"Der Gesamtvolumenstrom von {de(erg.summe_m3h, 2)} m³/h ist die Summe aller "
          "Raumvolumenströme und damit der Förderstrom, den die Umwälzpumpe bei voll geöffneten Heizkreisen liefern "
-         "muss. Die Summe der Raumheizlasten liegt über der Norm-Heizlast des Gebäudes, weil Aufheizzuschläge und "
-         "Lüftungswärmeverluste auf Gebäudeebene anders angesetzt werden als je Raum."
+         "muss."
+         + (" Die Summe der Raumheizlasten liegt über der Norm-Heizlast des Gebäudes, weil Aufheizzuschläge und "
+            "Lüftungswärmeverluste auf Gebäudeebene anders angesetzt werden als je Raum."
+            if project.norm_heizlast and erg.summe_w > project.norm_heizlast else "")
          + (f" Bezogen auf die Gebäude-Heizlast ergeben sich {de(erg.gebaeude_m3h, 2)} m³/h, dieser Wert ist für "
             "die Auslegung des Wärmeerzeugers maßgeblich." if erg.gebaeude_m3h else "")),
         ("Förderhöhe.", "Die Förderhöhe ist die Summe der Druckverluste im ungünstigsten Strang: längster und am "
          "stärksten belasteter Fußbodenheizkreis, Verteiler mit Armaturen und Rohrnetz vom Keller bis zum "
          f"entferntesten Verteiler. Annahmen: Rohr {settings.rohr} mm, Verlegeabstand {de(settings.verlegeabstand)} cm, "
          f"Heizkreise maximal {de(settings.max_kreislaenge)} m inklusive {de(settings.anbindung)} m Anbindeleitung, "
-         "ein Heizkreisverteiler je Wohnung. "
+         + ("ein Heizkreisverteiler je Wohnung. " if any(r.nr for r, _ in erg.zeilen) else "")
          + ("Durch Pufferspeicher bzw. hydraulische Weiche ist der Wärmeerzeuger hydraulisch entkoppelt und geht "
             "nicht in die Förderhöhe ein." if erg.dp_erzeuger == 0 else
             f"Der Wärmeerzeuger ist mit {de(erg.dp_erzeuger)} mbar berücksichtigt.")),
@@ -313,7 +317,9 @@ def build_pdf(path, project, settings, erg, meta):
 
 
 def default_meta(project):
-    grund = "Raumweise Heizlastberechnung nach DIN EN 12831-1:2020 mit nationalem Anhang"
+    grund = f"Raumweise Heizlastberechnung nach {project.norm}"
+    if project.software == "heiz.report":
+        grund += " (heiz.report)"
     if project.planer:
         grund += f", {project.planer}"
     if project.projekt_nr:

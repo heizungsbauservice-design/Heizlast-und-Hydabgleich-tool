@@ -23,7 +23,8 @@ PDF reinziehen (oder klicken) -> Projektangaben und Auslegungswerte pruefen
 -> "Neu berechnen" -> "HBS-PDF erstellen".
 
 Unterstuetzt: Ausdrucke raumweiser Heizlastberechnungen nach DIN EN 12831
-aus Hottgenroth/HottCAD (Raumblaetter). Andere Programme: Beispiel-PDF
+aus Hottgenroth/HottCAD (Raumblaetter) und aus heiz.report
+("Heizungs Auslegung", eine Seite pro Raum). Andere Programme: Beispiel-PDF
 schicken, dann wird der Leser erweitert.
 
 Annahmen Foerderhoehe (in der App aenderbar): Spreizung 5 K, Rohr 17x2,

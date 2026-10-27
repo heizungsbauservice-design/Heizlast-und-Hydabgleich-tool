@@ -228,7 +228,7 @@ class App:
             messagebox.showerror("HBS Heizlast-Tool",
                                  "In dieser Datei wurden keine Raumheizlasten gefunden.\n\n"
                                  "Das Tool erwartet den Ausdruck einer raumweisen Heizlastberechnung nach "
-                                 "DIN EN 12831 (Raumblätter mit „Geschoss … Raum-Nr. … Bez.:“ und „Normheizlast … ΦHL,i“)."
+                                 "DIN EN 12831 aus Hottgenroth/HottCAD oder heiz.report."
                                  + (f"\n\nFehler: {err}" if err else ""))
             self.status.set("Keine Räume gefunden.")
             return
@@ -276,7 +276,7 @@ class App:
         self.k["lmin"].set(f"{de(e.summe_lmin, 1)} l/min")
         if e.worst:
             r = e.worst_room
-            self.worst.set(f"Ungünstigster Heizkreis: {etage_kurz(r.etage)}, {r.nr}, {r.name} – ca. "
+            self.worst.set(f"Ungünstigster Heizkreis: {', '.join(x for x in (etage_kurz(r.etage), r.nr, r.name) if x)} – ca. "
                            f"{de(e.worst.laenge)} m, {de(e.worst.volumenstrom, 2)} l/min, {de(e.dp_kreis)} mbar. "
                            f"Gesamtdruckverlust {de(e.dp_gesamt)} mbar.")
         self.tree.delete(*self.tree.get_children())
@@ -298,7 +298,7 @@ class App:
 
     def _sum(self, grp):
         r0 = grp[0][0]
-        self.tree.insert("", "end", values=("", f"Summe {r0.nr}", "", "",
+        self.tree.insert("", "end", values=("", f"Summe {r0.nr or etage_kurz(r0.etage)}", "", "",
                                             de(sum(r.heizlast for r, _ in grp if r.heizlast > 0)),
                                             de(sum(v for _, v in grp), 2)), tags=("sum",))
 

@@ -90,12 +90,28 @@ class Ergebnis:
     foerderhoehe_m: float
 
 
-ETAGE_RANG = [(r"^(KG|UG|K\d*|U\d*)$", -10), (r"^EG$", 0), (r"^OG$", 1), (r"^(\d+)\.?OG$", None),
-              (r"^OG(\d+)$", None), (r"^DG$", 20), (r"^DG(\d+)$", "dg"), (r"^(SB|SP|Spitzboden)$", 40)]
+def norm_etage(e: str) -> str:
+    """Langnamen (Keller, Erdgeschoss, 1. Obergeschoss, Dachgeschoss …) auf Kurzform bringen."""
+    t = e.strip()
+    low = t.lower()
+    m = re.match(r"^(\d+)\.?\s*", low)
+    n = m.group(1) if m else ""
+    if low.startswith(("keller", "untergeschoss")) or low in ("kg", "ug"):
+        return "KG"
+    if "erdgeschoss" in low:
+        return "EG"
+    if "obergeschoss" in low:
+        return f"OG{n}" if n and n != "1" else "OG"
+    if "dachgeschoss" in low:
+        m2 = re.search(r"(\d+)", low)
+        return f"DG{m2.group(1)}" if m2 else "DG"
+    if "spitzboden" in low:
+        return "SB"
+    return t
 
 
 def etage_rang(e: str) -> float:
-    e = e.strip()
+    e = norm_etage(e)
     if re.match(r"^(KG|UG)", e):
         return -10
     if e == "EG":
@@ -112,6 +128,7 @@ def etage_rang(e: str) -> float:
 
 
 def etage_name(e: str) -> str:
+    e = norm_etage(e)
     if e == "EG":
         return "Erdgeschoss"
     m = re.match(r"^(?:(\d+)\.?OG|OG(\d*))$", e)
@@ -125,6 +142,7 @@ def etage_name(e: str) -> str:
 
 
 def etage_kurz(e: str) -> str:
+    e = norm_etage(e)
     return "OG" if e in ("OG1", "1OG", "1.OG") else e
 
 
