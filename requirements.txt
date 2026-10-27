@@ -1,0 +1,4 @@
+pypdf>=4.0
+reportlab>=4.0
+tkinterdnd2>=0.4
+pyinstaller>=6.0

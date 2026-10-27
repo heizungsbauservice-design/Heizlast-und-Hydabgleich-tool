@@ -1,0 +1,33 @@
+HBS Heizlast-Tool
+=================
+Heizlastberechnung (PDF) reinziehen -> HBS-Auslegungsunterlage (PDF) mit
+Raumheizlasten, Volumenstroemen je Raum, Gesamtvolumenstrom (m3/h) und
+Foerderhoehe der Umwaelzpumpe.
+
+Programm bauen (einmalig je Rechner, danach braucht man nur noch die App)
+-----------------------------------------------------------------------
+1. Python 3.11 oder neuer von https://www.python.org installieren
+   (Windows: beim Installieren "Add python.exe to PATH" anhaken).
+2. Windows: build_windows.bat doppelklicken -> dist\HBS_Heizlast.exe
+   Mac:     build_mac.command doppelklicken (ggf. Rechtsklick > Oeffnen)
+            -> dist/HBS Heizlast.app in den Ordner Programme ziehen.
+   Beim ersten Start auf dem Mac: Rechtsklick auf die App > Oeffnen.
+
+Ohne Python bauen: im GitHub-Repository unter "Actions"
+den Workflow "Build HBS Heizlast-Tool" starten, .exe und Mac-App als
+Download abholen.
+
+Bedienung
+---------
+PDF reinziehen (oder klicken) -> Projektangaben und Auslegungswerte pruefen
+-> "Neu berechnen" -> "HBS-PDF erstellen".
+
+Unterstuetzt: Ausdrucke raumweiser Heizlastberechnungen nach DIN EN 12831
+aus Hottgenroth/HottCAD (Raumblaetter). Andere Programme: Beispiel-PDF
+schicken, dann wird der Leser erweitert.
+
+Annahmen Foerderhoehe (in der App aenderbar): Spreizung 5 K, Rohr 17x2,
+Verlegeabstand 15 cm, Heizkreise max. 100 m inkl. 10 m Anbindung,
+Verteiler 50 mbar, Zusatzarmaturen 100 mbar, Rohrnetz 100 Pa/m + 30 %,
+Laenge Rohrnetz automatisch 2 x (Gebaeudehoehe + 15 m), Puffer/Weiche
+vorhanden, Sicherheitszuschlag 10 %.

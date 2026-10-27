@@ -1,0 +1,27 @@
+name: Build HBS Heizlast-Tool
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - run: pyinstaller --noconfirm --onefile --windowed --name HBS_Heizlast --icon icon.ico --add-data "hbs_heizlast\assets;assets" --collect-all tkinterdnd2 run_app.py
+      - uses: actions/upload-artifact@v4
+        with: { name: HBS_Heizlast_Windows, path: dist/HBS_Heizlast.exe }
+  mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - run: pyinstaller --noconfirm --windowed --name "HBS Heizlast" --icon icon.icns --add-data "hbs_heizlast/assets:assets" --collect-all tkinterdnd2 run_app.py
+      - run: cd dist && ditto -c -k --keepParent "HBS Heizlast.app" HBS_Heizlast_Mac.zip
+      - uses: actions/upload-artifact@v4
+        with: { name: HBS_Heizlast_Mac, path: dist/HBS_Heizlast_Mac.zip }
